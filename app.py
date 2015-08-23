@@ -124,7 +124,8 @@ if __name__ == '__main__':
         try:
             cur = conn.cursor()
             cur.execute("SELECT * from autopatch_server")
-            servers = cur.fetchall()
+            servers = cur.fetchmany(5)
+            cur.close()
         except:
             logging.debug("Failed to retrieve server list.")
             continue
@@ -138,11 +139,14 @@ if __name__ == '__main__':
                 logging.debug("Got satid {satid} for {server}".format(satid=satid, server=server[1]))
                 if satid != None: # We were able to obtain a satellite id.
                     # Update satellite id
-                    logging.debug("Attempting: update autopatch_server set satid={satid} where id={sid}".format(satid=satid, sid=server[0]))
-                    cur = conn.cursor()
-                    cur.execute("UPDATE autopatch_server set satid={satid} where id={sid}".format(satid=satid, sid=server[0]))
-                    conn.commit()
-                    logging.debug("Failed to update satid for {server}".format(server=server[1]))
+                    try:
+                        cur = conn.cursor()
+                        cur.execute("UPDATE autopatch_server set satid={satid} where id={sid}".format(satid=satid, sid=server[0]))
+                        conn.commit()
+                        cur.close()
+                    except:
+                        conn.rollback()
+                        logging.debug("Failed to update satid for {server}".format(server=server[1]))
 
             updates = None
             if server[6] != 0:
@@ -155,8 +159,18 @@ if __name__ == '__main__':
                     cur = conn.cursor()
                     cur.execute("SELECT * from autopatch_errata")
                     rows = cur.fetchall()
+                    cur.close()
                 except:
                     continue
+
+                try:
+                    cur = conn.cursor()
+                    cur.execute("UPDATE autopatch_server set updates=%s where id=%s", (updates, server[0]))
+                    conn.commit()
+                    cur.close()
+                except:
+                    logging.debug("Failed to update updates for {server}".format(server=server[1]))
+                    conn.rollback()
 
                 RHEA = rows[0][1]
                 RHSA = rows[0][2]
@@ -166,24 +180,30 @@ if __name__ == '__main__':
                 if needed_updates:
                     try:
                         cur = conn.cursor()
-                        cur.execute("UPDATE autopatch_server set plerrata={plerrata} where id={sid}".format(plerrata=needed_updates,sid=server[0]))
+                        cur.execute("UPDATE autopatch_server set plerrata=%s where id=%s", (plerrata, server[0]))
                         conn.commit()
-                        cur = conn.cursor()
-                        cur.execute("UPDATE autopatch_server set uptodate=0 where id={sid}".format(sid=server[0]))
-                        conn.commit()
-                        logging.debug("Successfully updated errata for {server}".format(server=server[1]))
+                        cur.close()
                     except:
+                        conn.rollback()
                         logging.debug("Failed to update errata for {server}".format(server=server[1]))
-                        continue
+
+                    try:
+                        cur = conn.cursor()
+                        cur.execute("UPDATE autopatch_server set uptodate=FALSE where id={sid}".format(sid=server[0]))
+                        conn.commit()
+                        cur.close()
+                    except:
+                        conn.rollback()
+                        logging.debug("Failed to update uptodate for {server}".format(server=server[1]))
                 else:
                     try:
                         cur = conn.cursor()
-                        cur.execute("UPDATE autopatch_server set uptodate=1 where id={sid}".format(sid=server[0]))
+                        cur.execute("UPDATE autopatch_server set uptodate=TRUE where id={sid}".format(sid=server[0]))
                         conn.commit()
-                        logging.debug("Successfully updated errata for {server}".format(server=server[1]))
+                        cur.close()
                     except:
-                        logging.debug("Failed to update errata for {server}".format(server=server[1]))
-                        continue
+                        conn.rollback()
+                        logging.debug("Failed to update uptodate for {server}".format(server=server[1]))
         conn.close()
-        logger.info("Completed server loop. Sleeping for 60 seconds.")
-        time.sleep(60)
+        logger.info("Completed server loop. Sleeping for 3 hours.")
+        time.sleep(10800)
