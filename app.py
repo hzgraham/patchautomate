@@ -103,7 +103,7 @@ def getErrataForSatId(satid):
         return None    
 
 if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     logger = logging.getLogger()
     
     cfg = config()
