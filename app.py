@@ -180,7 +180,7 @@ if __name__ == '__main__':
                 if needed_updates:
                     try:
                         cur = conn.cursor()
-                        cur.execute("UPDATE autopatch_server set plerrata=%s where id=%s", (plerrata, server[0]))
+                        cur.execute("UPDATE autopatch_server set plerrata=%s where id=%s", (needed_updates, server[0]))
                         conn.commit()
                         cur.close()
                     except:
