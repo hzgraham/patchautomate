@@ -124,7 +124,7 @@ if __name__ == '__main__':
         try:
             cur = conn.cursor()
             cur.execute("SELECT * from autopatch_server")
-            servers = cur.fetchmall()
+            servers = cur.fetchall()
             cur.close()
         except:
             logging.debug("Failed to retrieve server list.")
