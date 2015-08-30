@@ -105,7 +105,7 @@ def getErrataForSatId(satid):
         return None    
 
 if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     logger = logging.getLogger()
     
     cfg = config()
@@ -198,7 +198,7 @@ if __name__ == '__main__':
                         conn.rollback()
                         logging.debug("Failed to update uptodate for {server}".format(server=server[1]))
                 else:
-                    needed_updates = ""
+                    needed_updates = None
                     try:
                         cur = conn.cursor()
                         cur.execute("UPDATE autopatch_server set plerrata=%s where id=%s", (needed_updates, server[0]))
@@ -217,7 +217,7 @@ if __name__ == '__main__':
                         conn.rollback()
                         logging.debug("Failed to update uptodate for {server}".format(server=server[1]))
             else:
-                needed_updates = ""
+                needed_updates = None
                 try:
                     cur = conn.cursor()
                     cur.execute("UPDATE autopatch_server set plerrata=%s where id=%s", (needed_updates, server[0]))
