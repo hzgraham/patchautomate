@@ -196,6 +196,16 @@ if __name__ == '__main__':
                         conn.rollback()
                         logging.debug("Failed to update uptodate for {server}".format(server=server[1]))
                 else:
+                    needed_updates = ""
+                    try:
+                        cur = conn.cursor()
+                        cur.execute("UPDATE autopatch_server set plerrata=%s where id=%s", (needed_updates, server[0]))
+                        conn.commit()
+                        cur.close()
+                    except:
+                        conn.rollback()
+                        logging.debug("No Desired updates and failed to update errata for {server}".format(server=server[1]))
+
                     try:
                         cur = conn.cursor()
                         cur.execute("UPDATE autopatch_server set uptodate=TRUE where id={sid}".format(sid=server[0]))
@@ -204,6 +214,26 @@ if __name__ == '__main__':
                     except:
                         conn.rollback()
                         logging.debug("Failed to update uptodate for {server}".format(server=server[1]))
+            else:
+                needed_updates = ""
+                try:
+                    cur = conn.cursor()
+                    cur.execute("UPDATE autopatch_server set plerrata=%s where id=%s", (needed_updates, server[0]))
+                    conn.commit()
+                    cur.close()
+                except:
+                    conn.rollback()
+                    logging.debug("No updates and failed to update errata for {server}".format(server=server[1]))
+
+                try:
+                    cur = conn.cursor()
+                    cur.execute("UPDATE autopatch_server set uptodate=TRUE where id={sid}".format(sid=server[0]))
+                    conn.commit()
+                    cur.close()
+                except:
+                    conn.rollback()
+                    logging.debug("Failed to update uptodate for {server}".format(server=server[1]))
+
         conn.close()
         logger.info("Completed server loop. Sleeping for 3 hours.")
         time.sleep(10800)
