@@ -89,11 +89,13 @@ def desiredErrata(updates, RHEA, RHSA, RHBA):
 def getErrataForSatId(satid):
     cfg = config()
     URL = "https://" + cfg['SATELLITE_HOST']  + "/rpc/api"
-    client = xmlrpc.client.Server(URL, verbose=0)
-    session = client.auth.login(cfg['SATELLITE_USER'], cfg['SATELLITE_PASSWORD'])
-
-    client = xmlrpc.client.Server(URL, verbose=0)
-    errata = client.system.getRelevantErrata(session, satid)
+    try:
+        client = xmlrpc.client.Server(URL, verbose=0)
+        session = client.auth.login(cfg['SATELLITE_USER'], cfg['SATELLITE_PASSWORD'])
+        client = xmlrpc.client.Server(URL, verbose=0)
+        errata = client.system.getRelevantErrata(session, satid)
+    except:
+        errata = []
     updates = []
     if errata:
         for erratum in errata:
