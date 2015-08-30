@@ -97,13 +97,13 @@ def getErrataForSatId(satid):
     updates = []
     if errata:
         for erratum in errata:
-            updates.append(erratum['advisory_name'] + ' ')
+            updates.append(erratum['advisory_name'])
         return updates
     else:
         return None    
 
 if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     logger = logging.getLogger()
     
     cfg = config()
